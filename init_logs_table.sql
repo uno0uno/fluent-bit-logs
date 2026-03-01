@@ -8,11 +8,11 @@ DROP TABLE IF EXISTS container_logs;
 
 CREATE TABLE container_logs (
     tag  TEXT,
-    time DOUBLE PRECISION,
+    time TIMESTAMPTZ,
     data JSONB
 );
 
--- Query time as human-readable: SELECT TO_TIMESTAMP(time) FROM container_logs
+-- Fluent Bit inserts time via to_timestamp() → timestamptz
 CREATE INDEX idx_container_logs_time
     ON container_logs (time DESC);
 
