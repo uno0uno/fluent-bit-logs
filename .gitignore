@@ -1,0 +1,12 @@
+# Environment — never commit real credentials
+.env
+*.env
+
+# Fluent Bit runtime DB (position tracker)
+*.db
+/tmp/
+
+# Editor
+.DS_Store
+.vscode/
+*.swp
