@@ -10,8 +10,11 @@ Fluent Bit agent that tails Docker `json-file` logs on the host and writes them 
 
 1. Tails `/var/lib/docker/containers/*/*-json.log`
 2. Lua enrich adds `container_id` + `container_name` from each container’s `config.v2.json`
-3. Adds `host`
-4. Inserts into Postgres table `container_logs(tag, time, data jsonb)`
+3. Drops its own `fluent-bit*` logs (avoids feedback loops)
+4. Adds `host`
+5. Inserts into Postgres table `container_logs(tag, time, data jsonb)`
+
+**Ops note:** keep a single agent (`container_name: fluent-bit-logs`). Extra `docker run fluent/fluent-bit` instances will amplify logs and trigger `mem buf overlimit`.
 
 `Read_from_Head` is **Off** so restarts do not re-ingest full history.
 

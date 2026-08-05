@@ -56,6 +56,10 @@ function enrich(tag, timestamp, record)
 
   if name and name ~= '' then
     record['container_name'] = name
+    -- Drop self / sibling fluent-bit logs to avoid feedback loops
+    if name:find('fluent%-bit', 1, false) or name == 'fluent-bit-logs' then
+      return -1, timestamp, record
+    end
   end
 
   return 2, timestamp, record
