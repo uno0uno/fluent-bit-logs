@@ -52,13 +52,25 @@ Prod today uses DB `waro_logs` / user `saifer` (see server `.env`).
 
 ## Retention (30 days)
 
-Batched deletes (5k rows/loop) — safe to re-run on large tables:
+Batched deletes (5k rows/loop) — safe to re-run on large tables. Only touches `waro_logs.container_logs`.
+
+**Schedule (prod cron):** every **Sunday 04:15 UTC**
+
+```cron
+15 4 * * 0 /home/saifer/fluent-bit-logs/scripts/run-retention.sh
+```
+
+Log: `/home/saifer/fluent-bit-logs/retention.log`
+
+Manual run:
 
 ```bash
+/home/saifer/fluent-bit-logs/scripts/run-retention.sh
+# or:
 psql -h 127.0.0.1 -U saifer -d waro_logs -f sql/retention.sql
 ```
 
-See comments in `sql/retention.sql` for optional weekly cron. Never use `init_logs_table.sql` DROP on prod.
+Never use `init_logs_table.sql` DROP on prod.
 
 ## Forensic queries
 
