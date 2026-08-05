@@ -52,6 +52,8 @@ Prod today uses DB `waro_logs` / user `saifer` (see server `.env`).
 
 ## Retention (30 days)
 
+Batched deletes (5k rows/loop) — safe to re-run on large tables:
+
 ```bash
 psql -h 127.0.0.1 -U saifer -d waro_logs -f sql/retention.sql
 ```
