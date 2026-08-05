@@ -1,0 +1,46 @@
+# Compact Codex plan for wr-fast #1.
+issue: 1
+title: "chore(fluent-bit): enrich container_name, retention, and forensic query docs"
+repo: fluent-bit-logs
+repo_remote: uno0uno/fluent-bit-logs
+cwd: /Users/saifer/Documents/WEBS/fluent-bit-logs
+stack: fluent-bit
+branch: wr-1-fluentbit-enrich-retention
+
+paths:
+  - config/fluent-bit.conf
+  - config/parsers.conf
+  - config/container_enrich.lua
+  - docker-compose.yml
+  - init_logs_table.sql
+  - sql/retention.sql
+  - README.md
+  - .wr/1.yaml
+
+ac:
+  - New rows include usable container_name (or equivalent) without hand-mapping CIDs
+  - Read_from_Head Off in prod config
+  - Retention SQL for container_logs (14–30d) documented + runnable
+  - README: sync, compose up -d fluent-bit only, forensic queries
+  - Conf remains bind-mounted; redeploy = pull + recreate fluent-bit only
+
+out_of_scope:
+  - warocol-nuxt request/SSE logging
+  - front healthcheck
+  - rebuild API/front or other containers
+  - DROP/recreate container_logs table in prod
+
+hints:
+  entry: "config/fluent-bit.conf INPUT tail → FILTER lua → OUTPUT pgsql"
+  pattern: "Lua reads config.v2.json (a3d80c2 removed unavailable docker_metadata)"
+  tests: "python structural check on lua; fluent-bit -c conf with null output on server"
+
+risk:
+  sensitive: false
+  areas: []
+
+skip:
+  audits: [ux, color, typography]
+
+next:
+  after_pr: "server: git pull + docker compose up -d (fluent-bit only)"

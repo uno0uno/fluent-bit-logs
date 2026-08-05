@@ -1,8 +1,10 @@
--- Run this once against your PostgreSQL instance
+-- Run this once against your PostgreSQL instance (bootstrap only).
 -- psql -h 127.0.0.1 -U saifer -d waro_logs -f init_logs_table.sql
+--
+-- Prod already has container_logs — do NOT re-run DROP on live data.
+-- For ongoing cleanup use sql/retention.sql (30-day DELETE).
 
--- Fluent Bit pgsql plugin (v3.x) inserts: (tag TEXT, time DOUBLE PRECISION, data JSONB)
--- time is stored as Unix epoch (seconds.nanoseconds as float)
+-- Fluent Bit pgsql plugin inserts: (tag TEXT, time via to_timestamp → timestamptz, data JSONB)
 
 DROP TABLE IF EXISTS container_logs;
 
@@ -12,10 +14,10 @@ CREATE TABLE container_logs (
     data JSONB
 );
 
--- Fluent Bit inserts time via to_timestamp() → timestamptz
 CREATE INDEX idx_container_logs_time
     ON container_logs (time DESC);
 
+-- Used after Lua enrich writes data.container_name
 CREATE INDEX idx_container_logs_container
     ON container_logs ((data->>'container_name'));
 
