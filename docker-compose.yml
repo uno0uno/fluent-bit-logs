@@ -6,7 +6,8 @@ services:
     volumes:
       - ./config/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
       - ./config/parsers.conf:/fluent-bit/etc/parsers.conf:ro
-      # Access to Docker container logs on the host
+      - ./config/container_enrich.lua:/fluent-bit/etc/container_enrich.lua:ro
+      # Access to Docker container logs + config.v2.json on the host
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
