@@ -38,6 +38,20 @@ local function read_container_name(container_id)
   return name
 end
 
+local function keep_fluentbit_signal(log)
+  if type(log) ~= 'string' then
+    return false
+  end
+  -- Fluent Bit levels look like: [error]  [ warn]  [ info]
+  if log:find('%[error%]') or log:find('%[ warn%]') then
+    return true
+  end
+  local lower = log:lower()
+  return lower:find('failed connecting', 1, true)
+      or lower:find('overlimit', 1, true)
+      or lower:find('output initialization failed', 1, true)
+end
+
 function enrich(tag, timestamp, record)
   local id = container_id_from_tag(tag)
   if not id then
@@ -56,11 +70,49 @@ function enrich(tag, timestamp, record)
 
   if name and name ~= '' then
     record['container_name'] = name
-    -- Drop self / sibling fluent-bit logs to avoid feedback loops
+    -- Drop Fluent Bit *info* self-tail (feedback loop). Keep warn/error
+    -- so Postgres-down / mem-buf-overlimit at boot remains queryable.
     if name:find('fluent%-bit', 1, false) or name == 'fluent-bit-logs' then
+      if keep_fluentbit_signal(record['log']) then
+        return 2, timestamp, record
+      end
       return -1, timestamp, record
     end
   end
 
   return 2, timestamp, record
+end
+
+-- Host journal/syslog: keep reboot/OOM/panic/reset signals only.
+function keep_host(tag, timestamp, record)
+  local msg = record['MESSAGE'] or record['log'] or record['message'] or ''
+  if type(msg) ~= 'string' then
+    msg = tostring(msg)
+  end
+  local m = msg:lower()
+  local needles = {
+    'reboot',
+    'shutdown',
+    'power-off',
+    'out of memory',
+    'oom-kill',
+    'oom-killer',
+    'kernel panic',
+    'hardware error',
+    'device reset',
+    'power-on or device reset',
+    'hypervisor detected',
+    'unattended-upgrade',
+    'watchdog',
+  }
+  for i = 1, #needles do
+    if m:find(needles[i], 1, true) then
+      record['source'] = 'host'
+      if record['MESSAGE'] and not record['log'] then
+        record['log'] = record['MESSAGE']
+      end
+      return 2, timestamp, record
+    end
+  end
+  return -1, timestamp, record
 end
