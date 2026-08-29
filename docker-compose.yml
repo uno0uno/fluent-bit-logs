@@ -10,6 +10,10 @@ services:
       # Access to Docker container logs + config.v2.json on the host
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - flb-storage:/fluent-bit/storage
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-127.0.0.1}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -18,3 +22,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     network_mode: host
     depends_on: []
+
+volumes:
+  flb-storage:

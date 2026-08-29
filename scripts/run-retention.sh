@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Weekly retention for waro_logs.container_logs (30 days).
+# Weekly retention for waro_logs.container_logs (7 days).
 # Cron (server): 15 4 * * 0 /home/saifer/fluent-bit-logs/scripts/run-retention.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."

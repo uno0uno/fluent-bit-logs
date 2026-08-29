@@ -1,0 +1,41 @@
+# Machine contract for wr-fast #3 — keep ≤80 lines.
+issue: 3
+title: "feat(infra): Fluent Bit host journal trace for VPS reboots"
+repo: fluent-bit-logs
+repo_remote: uno0uno/fluent-bit-logs
+cwd: /Users/saifer/Documents/WEBS/fluent-bit-logs
+stack: fluent-bit
+branch: wr-3-host-journal-trace
+risk: low
+
+paths:
+  - config/fluent-bit.conf
+  - config/container_enrich.lua
+  - docker-compose.yml
+  - sql/retention.sql
+  - scripts/run-retention.sh
+  - README.md
+  - .wr/3.yaml
+
+ac:
+  - Filtered host systemd/kernel ingest (not full syslog)
+  - Keep reboot/shutdown, OOM, panic, KVM/device reset, unattended-upgrades, Fluent Bit pgsql/overlimit
+  - Lua keeps fluent-bit warn/error; drops info self-tail
+  - Filesystem storage backlog for Postgres boot gap
+  - Retention 7 days on waro_logs.container_logs only
+  - README: host input; stack is not started by warolabs-server-infra
+
+out_of_scope:
+  - warolabs-server-infra launch changes
+  - warocol.com / api-warolabs UI
+  - Hostinger panel
+  - app database users/orders/tenants
+  - unrestricted syslog dump
+
+hints:
+  entry: "config/fluent-bit.conf SERVICE storage + INPUT systemd/tail host + FILTER keep_host"
+  pattern: "Lua enrich already drops fluent-bit*; split keep warn/error vs drop info"
+  tests: "python3 -c structural check on lua keep_host + enrich; no docker build"
+
+skip:
+  audits: [ux, color, typography]
